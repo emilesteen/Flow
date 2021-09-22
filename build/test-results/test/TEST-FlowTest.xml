@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="FlowTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-09-22T23:48:55" hostname="Emiles-MBP.homenet.telecomitalia.it" time="0.332">
+  <properties/>
+  <testcase name="testFlow" classname="FlowTest" time="0.332"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

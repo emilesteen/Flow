@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="WorkflowTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-09-22T22:40:43" hostname="Emiles-MBP.homenet.telecomitalia.it" time="7.538">
-  <properties/>
-  <testcase name="testWorkflow" classname="WorkflowTest" time="7.538"/>
-  <system-out><![CDATA[User@13902b
-]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

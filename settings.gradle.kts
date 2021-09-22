@@ -1,3 +1,3 @@
 
-rootProject.name = "Workflow"
+rootProject.name = "Flow"
 
