@@ -9,7 +9,7 @@ abstract class Flow<T> {
     private val _kFunctions: List<KFunction<*>> = this.javaClass.kotlin.members.filterIsInstance<KFunction<*>>()
     private val _environment = mutableMapOf<String, Any?>()
 
-    fun execute(): Flow<T> {
+    fun execute(): T {
         this.generateEnvironment()
         val start = this._kFunctions.find { kFunction -> kFunction.annotations.filterIsInstance<Start>().isNotEmpty() }
 
@@ -19,18 +19,7 @@ abstract class Flow<T> {
             callFunction(start)
         }
 
-        return this
-    }
-
-    fun getResult(): T
-    {
-        val result = this._environment[this.resultKey]
-
-        if (result == null) {
-            throw Exception("No result")
-        } else {
-            return result as T
-        }
+        return this.getResult()
     }
 
     protected fun get(key: String): Any? {
@@ -139,6 +128,17 @@ abstract class Flow<T> {
         }
 
         return arguments
+    }
+
+    private fun getResult(): T
+    {
+        val result = this._environment[this.resultKey]
+
+        if (result == null) {
+            throw Exception("No result")
+        } else {
+            return result as T
+        }
     }
 }
 
