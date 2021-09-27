@@ -6,7 +6,7 @@ import TransitionTemporary
 import model.User
 import Flow
 
-class CreateUser(val name: String, val age: Number, val country: String) : Flow<User>() {
+class CreateUser(val name: String, val age: Number, val country: String) : Flow() {
     override val resultKey = "user"
 
     @Start

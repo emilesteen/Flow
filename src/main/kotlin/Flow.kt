@@ -2,14 +2,14 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 
-abstract class Flow<T> {
+abstract class Flow {
     abstract val resultKey: String
 
-    private val _kProperties: List<KProperty<*>> = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
-    private val _kFunctions: List<KFunction<*>> = this.javaClass.kotlin.members.filterIsInstance<KFunction<*>>()
-    private val _environment = mutableMapOf<String, Any?>()
+    val _kProperties: List<KProperty<*>> = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
+    val _kFunctions: List<KFunction<*>> = this.javaClass.kotlin.members.filterIsInstance<KFunction<*>>()
+    val _environment = mutableMapOf<String, Any?>()
 
-    fun execute(): T {
+    inline fun <reified T: Any>execute(): T {
         this.generateEnvironment()
         val start = this._kFunctions.find { kFunction -> kFunction.annotations.filterIsInstance<Start>().isNotEmpty() }
 
@@ -26,13 +26,13 @@ abstract class Flow<T> {
         return _environment[key]
     }
 
-    private fun generateEnvironment() {
+    fun generateEnvironment() {
         for (kProperty in this._kProperties) {
             this._environment[kProperty.name] = kProperty.getter.call(this)
         }
     }
 
-    private fun callFunction(kFunction: KFunction<*>, ) {
+    fun callFunction(kFunction: KFunction<*>, ) {
         val arguments = this.generateArguments(kFunction)
         val resultAnnotation = kFunction.annotations.filterIsInstance<Result>().firstOrNull()
 
@@ -50,13 +50,13 @@ abstract class Flow<T> {
 
         for (transitionAnnotation in transitionAnnotations) {
             if (transitionAnnotation.condition == "") {
-                if (transitionAnnotation.transitionString == "End") {
+                if (transitionAnnotation.transitionString == "END") {
                     return
                 } else {
                     callTransitionFunction(transitionAnnotation.transitionString)
                 }
             } else if (this.isConditionTrue(transitionAnnotation.condition)) {
-                if (transitionAnnotation.transitionString == "End") {
+                if (transitionAnnotation.transitionString == "END") {
                     return
                 } else {
                     callTransitionFunction(transitionAnnotation.transitionString)
@@ -130,7 +130,7 @@ abstract class Flow<T> {
         return arguments
     }
 
-    private fun getResult(): T
+    inline fun <reified T>getResult(): T
     {
         val result = this._environment[this.resultKey]
 
