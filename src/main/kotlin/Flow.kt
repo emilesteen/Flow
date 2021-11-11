@@ -63,7 +63,7 @@ abstract class Flow {
         }
     }
 
-    fun isConditionTrueOrUndefined(condition: String?, shouldNegate: Boolean?): Boolean {
+    private fun isConditionTrueOrUndefined(condition: String?, shouldNegate: Boolean?): Boolean {
         return if (condition == null) {
             return true
         } else {
@@ -77,7 +77,7 @@ abstract class Flow {
         }
     }
 
-    fun generateArguments(
+    private fun generateArguments(
         function: KFunction<*>,
         parameters: List<KParameter>
     ): MutableMap<KParameter, Any?> {

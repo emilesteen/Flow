@@ -17,7 +17,7 @@ class FlowTreeBuilder {
             }
         }
 
-        fun buildFlowTreeBranch(function: KFunction<*>, flowFunctions: List<KFunction<*>>): FlowTree {
+        private fun buildFlowTreeBranch(function: KFunction<*>, flowFunctions: List<KFunction<*>>): FlowTree {
             return FlowTree(
                 function,
                 determineResultNameOrNull(function),
