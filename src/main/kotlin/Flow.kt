@@ -9,7 +9,7 @@ abstract class Flow {
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
-    annotation class Result(val resultString: String)
+    annotation class Result(val resultName: String)
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
@@ -22,126 +22,71 @@ abstract class Flow {
 
     abstract val resultKey: String
 
-    val _kProperties: List<KProperty<*>> = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
-    val _kFunctions: List<KFunction<*>> = this.javaClass.kotlin.members.filterIsInstance<KFunction<*>>()
-    val _environment = mutableMapOf<String, Any?>()
+    val environment = mutableMapOf<String, Any?>()
 
     inline fun <reified T: Any>execute(): T {
         this.generateEnvironment()
-        val start = this._kFunctions.find { kFunction -> kFunction.annotations.filterIsInstance<Start>().isNotEmpty() }
+        var flowTree: FlowTree? = FlowTreeBuilder.buildFlowTree(this)
 
-        if (start == null) {
-            throw Exception("No Start found.")
-        } else {
-            callFunction(start)
+        while (true) {
+            if (flowTree == null) {
+                return this.getResult()
+            } else {
+                flowTree = executeStep(flowTree)
+            }
         }
-
-        return this.getResult()
     }
 
-    protected fun get(key: String): Any? {
-        return _environment[key]
+    fun executeStep(flowTree: FlowTree): FlowTree? {
+        val arguments = this.generateArguments(flowTree.function, flowTree.parameters)
+
+        if (flowTree.resultName == null) {
+            flowTree.function.callBy(arguments)
+        } else {
+            this.environment[flowTree.resultName] = flowTree.function.callBy(arguments)
+        }
+
+        for (flowTransition in flowTree.flowTransitions) {
+            if (isConditionTrueOrUndefined(flowTransition.condition, flowTransition.shouldNegateCondition)) {
+                return flowTransition.flowTree
+            }
+        }
+
+        throw Exception("No valid transition")
     }
 
     fun generateEnvironment() {
-        for (kProperty in this._kProperties) {
-            this._environment[kProperty.name] = kProperty.getter.call(this)
+        val properties = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
+
+        for (property in properties) {
+            this.environment[property.name] = property.getter.call(this)
         }
     }
 
-    fun callFunction(kFunction: KFunction<*>, ) {
-        val arguments = this.generateArguments(kFunction)
-        val resultAnnotation = kFunction.annotations.filterIsInstance<Result>().firstOrNull()
-
-        if (resultAnnotation == null) {
-            kFunction.callBy(arguments)
+    fun isConditionTrueOrUndefined(condition: String?, shouldNegate: Boolean?): Boolean {
+        return if (condition == null) {
+            return true
         } else {
-            this._environment[resultAnnotation.resultString] = kFunction.callBy(arguments)
-        }
+            val conditional = this.environment[condition]
 
-        transitionTemporary(kFunction)
-    }
-
-    private fun transition(kFunction: KFunction<*>) {
-        val transitionAnnotations = kFunction.annotations.filterIsInstance<Transition>()
-
-        for (transitionAnnotation in transitionAnnotations) {
-            if (this.isConditionTrueOrUndefined(transitionAnnotation.condition)) {
-                if (transitionAnnotation.functionName == "END") {
-                    return
-                } else {
-                    callTransitionFunction(transitionAnnotation.functionName)
-
-                    return
-                }
-            }
-        }
-
-        throw Exception("No valid transition")
-    }
-
-    private fun transitionTemporary(kFunction: KFunction<*>) {
-        val transitionAnnotation = kFunction.annotations.filterIsInstance<TransitionTemporary>().first()
-
-        for (transition in transitionAnnotation.transitions) {
-            val transitionSplit = transition.split("->")
-            val condition = transitionSplit[0]
-            val functionName = transitionSplit[1]
-
-            if (this.isConditionTrueOrUndefined(condition)) {
-                if (functionName == "END") {
-                    return
-                } else {
-                    callTransitionFunction(functionName)
-
-                    return
-                }
-            }
-        }
-
-        throw Exception("No valid transition")
-    }
-
-    private fun callTransitionFunction(functionName: String) {
-        val next = _kFunctions.first { kFunction -> kFunction.name == (functionName) }
-
-        callFunction(next)
-    }
-
-    private fun isConditionTrueOrUndefined(condition: String): Boolean {
-        return when {
-            condition == "" -> {
-                return true
-            }
-            this.shouldNegate(condition) -> {
-                val conditional = this._environment[condition.drop(1)]
-
+            if (shouldNegate!!) {
                 conditional == false
-            }
-            else -> {
-                val conditional = this._environment[condition]
-
+            } else {
                 conditional == true
             }
         }
     }
 
-    private fun shouldNegate(condition: String): Boolean
-    {
-        return condition.first() == '!'
-    }
-
-    private fun generateArguments(
-        kFunction: KFunction<*>,
+    fun generateArguments(
+        function: KFunction<*>,
+        parameters: List<KParameter>
     ): MutableMap<KParameter, Any?> {
         val arguments = mutableMapOf<KParameter, Any?>()
 
-        var parameters = kFunction.parameters
-        arguments[parameters.first()] = this
-        parameters = parameters.drop(1)
+        arguments[function.parameters.first()] = this
 
         for (parameter in parameters) {
-            arguments[parameter] = this._environment[parameter.name.toString()]
+            arguments[parameter] = this.environment[parameter.name.toString()]
         }
 
         return arguments
@@ -149,7 +94,7 @@ abstract class Flow {
 
     inline fun <reified T>getResult(): T
     {
-        val result = this._environment[this.resultKey]
+        val result = this.environment[this.resultKey]
 
         if (result == null) {
             throw Exception("No result")
