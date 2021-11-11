@@ -1,8 +1,13 @@
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 
 abstract class Flow {
+    companion object {
+        val flowTreeMap: MutableMap<KClass<*>, FlowTree> = mutableMapOf()
+    }
+
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
     annotation class Start
@@ -26,7 +31,7 @@ abstract class Flow {
 
     inline fun <reified T: Any>execute(): T {
         this.generateEnvironment()
-        var flowTree: FlowTree? = FlowTreeBuilder.buildFlowTree(this)
+        var flowTree: FlowTree? = this.determineFlowTree()
 
         while (true) {
             if (flowTree == null) {
@@ -34,6 +39,18 @@ abstract class Flow {
             } else {
                 flowTree = executeStep(flowTree)
             }
+        }
+    }
+
+    fun determineFlowTree(): FlowTree
+    {
+        return if (flowTreeMap.containsKey(this::class)) {
+            flowTreeMap[this::class]!!
+        } else {
+            val flowTree = FlowTreeBuilder.buildFlowTree(this)
+            flowTreeMap[this::class] = flowTree
+
+            flowTree
         }
     }
 
