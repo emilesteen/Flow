@@ -1,16 +1,13 @@
 package flow
 
-import Result
-import Start
-import TransitionTemporary
 import model.User
 import Flow
 
 class CreateUser(val name: String, val age: Number, val country: String) : Flow() {
     override val resultKey = "user"
 
-    @Start
-    @TransitionTemporary([
+    @Flow.Start
+    @Flow.TransitionTemporary([
         "->isSpecialPerson"
     ])
     fun assertUserUnique(name: String) {
@@ -19,8 +16,8 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
         }
     }
 
-    @Result("isSpecialPerson")
-    @TransitionTemporary([
+    @Flow.Result("isSpecialPerson")
+    @Flow.TransitionTemporary([
         "isSpecialPerson->createTag",
         "!isSpecialPerson->createUser"
     ])
@@ -28,16 +25,16 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
         return name == "Emile" && age == 23;
     }
 
-    @Result("tag")
-    @TransitionTemporary([
+    @Flow.Result("tag")
+    @Flow.TransitionTemporary([
         "->createUser",
     ])
     fun createTag(): String {
         return "special"
     }
 
-    @Result("user")
-    @TransitionTemporary([
+    @Flow.Result("user")
+    @Flow.TransitionTemporary([
         "->END"
     ])
     fun createUser(name: String, age: Number, country: String, tag: String?): User {

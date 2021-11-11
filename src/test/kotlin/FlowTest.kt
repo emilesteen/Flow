@@ -7,9 +7,9 @@ internal class FlowTest {
     @Test
     fun testFlow() {
         val notSpecialUser = CreateUser("Emile", 22, "ZA").execute<User>()
-        assertEquals(notSpecialUser.tag, null)
+        assertEquals(User("Emile", 22, "ZA", null), notSpecialUser)
 
         val specialUser = CreateUser("Emile", 23, "ZA").execute<User>()
-        assertEquals(specialUser.tag, "special")
+        assertEquals(User("Emile", 23, "ZA", "special"), specialUser)
     }
 }

@@ -3,6 +3,23 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 
 abstract class Flow {
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention(AnnotationRetention.RUNTIME)
+    annotation class Start
+
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention(AnnotationRetention.RUNTIME)
+    annotation class Result(val resultString: String)
+
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention(AnnotationRetention.RUNTIME)
+    @Repeatable
+    annotation class Transition(val condition: String, val functionName: String)
+
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention(AnnotationRetention.RUNTIME)
+    annotation class TransitionTemporary(val transitions: Array<String>)
+
     abstract val resultKey: String
 
     val _kProperties: List<KProperty<*>> = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
@@ -49,17 +66,13 @@ abstract class Flow {
         val transitionAnnotations = kFunction.annotations.filterIsInstance<Transition>()
 
         for (transitionAnnotation in transitionAnnotations) {
-            if (transitionAnnotation.condition == "") {
-                if (transitionAnnotation.transitionString == "END") {
+            if (this.isConditionTrueOrUndefined(transitionAnnotation.condition)) {
+                if (transitionAnnotation.functionName == "END") {
                     return
                 } else {
-                    callTransitionFunction(transitionAnnotation.transitionString)
-                }
-            } else if (this.isConditionTrue(transitionAnnotation.condition)) {
-                if (transitionAnnotation.transitionString == "END") {
+                    callTransitionFunction(transitionAnnotation.functionName)
+
                     return
-                } else {
-                    callTransitionFunction(transitionAnnotation.transitionString)
                 }
             }
         }
@@ -73,39 +86,43 @@ abstract class Flow {
         for (transition in transitionAnnotation.transitions) {
             val transitionSplit = transition.split("->")
             val condition = transitionSplit[0]
-            val transitionString = transitionSplit[1]
+            val functionName = transitionSplit[1]
 
-            if (condition == "") {
-                if (transitionString == "END") {
+            if (this.isConditionTrueOrUndefined(condition)) {
+                if (functionName == "END") {
                     return
                 } else {
-                    callTransitionFunction(transitionString)
-                }
-            } else if (this.isConditionTrue(condition)) {
-                if (transitionString == "END") {
+                    callTransitionFunction(functionName)
+
                     return
-                } else {
-                    callTransitionFunction(transitionString)
                 }
             }
         }
+
+        throw Exception("No valid transition")
     }
 
-    private fun callTransitionFunction(transitionString: String) {
-        val next = _kFunctions.first { kFunction -> kFunction.name == (transitionString) }
+    private fun callTransitionFunction(functionName: String) {
+        val next = _kFunctions.first { kFunction -> kFunction.name == (functionName) }
 
         callFunction(next)
     }
 
-    private fun isConditionTrue(condition: String): Boolean {
-        return if (this.shouldNegate(condition)) {
-            val conditional = this._environment[condition.drop(1)]
+    private fun isConditionTrueOrUndefined(condition: String): Boolean {
+        return when {
+            condition == "" -> {
+                return true
+            }
+            this.shouldNegate(condition) -> {
+                val conditional = this._environment[condition.drop(1)]
 
-            conditional == false
-        } else {
-            val conditional = this._environment[condition]
+                conditional == false
+            }
+            else -> {
+                val conditional = this._environment[condition]
 
-            conditional == true
+                conditional == true
+            }
         }
     }
 
@@ -141,20 +158,3 @@ abstract class Flow {
         }
     }
 }
-
-@Target(AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class Start
-
-@Target(AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class Result(val resultString: String)
-
-@Target(AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.RUNTIME)
-@Repeatable
-annotation class Transition(val condition: String, val transitionString: String)
-
-@Target(AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class TransitionTemporary(val transitions: Array<String>)
