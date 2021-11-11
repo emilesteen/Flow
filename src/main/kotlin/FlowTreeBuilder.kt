@@ -17,21 +17,21 @@ class FlowTreeBuilder {
             }
         }
 
-        private fun buildFlowTreeBranch(function: KFunction<*>, flowFunctions: List<KFunction<*>>): FlowTree {
+        private fun buildFlowTreeBranch(currentFunction: KFunction<*>, flowFunctions: List<KFunction<*>>): FlowTree {
             return FlowTree(
-                function,
-                determineResultNameOrNull(function),
-                generateParameters(function),
-                generateFlowTransitions(function, flowFunctions)
+                currentFunction,
+                determineResultNameOrNull(currentFunction),
+                generateParameters(currentFunction),
+                generateFlowTransitions(currentFunction, flowFunctions)
             )
         }
 
-        private fun determineResultNameOrNull(function: KFunction<*>): String? {
-            return function.annotations.filterIsInstance<Flow.Result>().firstOrNull()?.resultName
+        private fun determineResultNameOrNull(currentFunction: KFunction<*>): String? {
+            return currentFunction.annotations.filterIsInstance<Flow.Result>().firstOrNull()?.resultName
         }
 
-        private fun generateParameters(function: KFunction<*>): List<KParameter> {
-            return function.parameters.drop(1)
+        private fun generateParameters(currentFunction: KFunction<*>): List<KParameter> {
+            return currentFunction.parameters.drop(1)
         }
 
         private fun generateFlowTransitions(
