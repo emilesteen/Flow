@@ -58,7 +58,7 @@ class FlowTreeBuilder {
             return FlowTransition(
                 determineConditionOrNull(condition, shouldNegateCondition),
                 shouldNegateCondition,
-                determineFlowBranchOrNull(flowFunctions, functionName)
+                determineNextFlowTreeBranchOrNull(flowFunctions, functionName)
             )
         }
 
@@ -84,17 +84,24 @@ class FlowTreeBuilder {
             }
         }
 
-        private fun determineFlowBranchOrNull(flowFunctions: List<KFunction<*>>, functionName: String): FlowTree? {
+        private fun determineNextFlowTreeBranchOrNull(
+            flowFunctions: List<KFunction<*>>,
+            functionName: String
+        ): FlowTree? {
             return if (functionName == "END") {
                 null
             } else {
-                val transitionFunction = flowFunctions.find { flowFunction -> flowFunction.name == functionName }
+                determineNextFlowTreeBranch(flowFunctions, functionName)
+            }
+        }
 
-                if (transitionFunction == null) {
-                    throw Exception("The function $functionName does not exist")
-                } else {
-                    buildFlowTreeBranch(transitionFunction, flowFunctions)
-                }
+        private fun determineNextFlowTreeBranch(flowFunctions: List<KFunction<*>>, functionName: String): FlowTree {
+            val transitionFunction = flowFunctions.find { flowFunction -> flowFunction.name == functionName }
+
+            if (transitionFunction == null) {
+                throw Exception("The function $functionName does not exist")
+            } else {
+                return buildFlowTreeBranch(transitionFunction, flowFunctions)
             }
         }
     }
