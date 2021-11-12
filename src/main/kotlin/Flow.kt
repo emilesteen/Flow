@@ -42,8 +42,7 @@ abstract class Flow {
         }
     }
 
-    fun determineFlowTree(): FlowTree
-    {
+    fun determineFlowTree(): FlowTree {
         return if (flowTreeMap.containsKey(this::class)) {
             flowTreeMap[this::class]!!
         } else {
