@@ -18,11 +18,6 @@ abstract class Flow {
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
-    @Repeatable
-    annotation class Transition(val condition: String, val functionName: String)
-
-    @Target(AnnotationTarget.FUNCTION)
-    @Retention(AnnotationRetention.RUNTIME)
     annotation class TransitionTemporary(val transitions: Array<String>)
 
     abstract val resultKey: String
@@ -30,15 +25,23 @@ abstract class Flow {
     val environment = mutableMapOf<String, Any?>()
 
     inline fun <reified T: Any>execute(): T {
-        this.generateEnvironment()
-        var flowTree: FlowTree? = this.determineFlowTree()
+        generateEnvironment()
+        var flowTree: FlowTree? = determineFlowTree()
 
         while (true) {
             if (flowTree == null) {
-                return this.getResult()
+                return getResult()
             } else {
                 flowTree = executeStep(flowTree)
             }
+        }
+    }
+
+    fun generateEnvironment() {
+        val properties = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
+
+        for (property in properties) {
+            environment[property.name] = property.getter.call(this)
         }
     }
 
@@ -54,43 +57,10 @@ abstract class Flow {
     }
 
     fun executeStep(flowTree: FlowTree): FlowTree? {
-        val arguments = this.generateArguments(flowTree.function, flowTree.parameters)
+        val arguments = generateArguments(flowTree.function, flowTree.parameters)
+        callFunction(flowTree, arguments)
 
-        if (flowTree.resultName == null) {
-            flowTree.function.callBy(arguments)
-        } else {
-            this.environment[flowTree.resultName] = flowTree.function.callBy(arguments)
-        }
-
-        for (flowTransition in flowTree.flowTransitions) {
-            if (isConditionTrueOrUndefined(flowTransition.condition, flowTransition.shouldNegateCondition)) {
-                return flowTransition.flowTree
-            }
-        }
-
-        throw Exception("No valid transition")
-    }
-
-    fun generateEnvironment() {
-        val properties = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
-
-        for (property in properties) {
-            this.environment[property.name] = property.getter.call(this)
-        }
-    }
-
-    private fun isConditionTrueOrUndefined(condition: String?, shouldNegate: Boolean?): Boolean {
-        return if (condition == null) {
-            return true
-        } else {
-            val conditional = this.environment[condition]
-
-            if (shouldNegate!!) {
-                conditional == false
-            } else {
-                conditional == true
-            }
-        }
+        return determineNextFlowTreeBranch(flowTree)
     }
 
     private fun generateArguments(
@@ -102,15 +72,51 @@ abstract class Flow {
         arguments[function.parameters.first()] = this
 
         for (parameter in parameters) {
-            arguments[parameter] = this.environment[parameter.name.toString()]
+            arguments[parameter] = environment[parameter.name.toString()]
         }
 
         return arguments
     }
 
+    private fun callFunction(flowTree: FlowTree, arguments: Map<KParameter, Any?>) {
+        if (flowTree.resultName == null) {
+            flowTree.function.callBy(arguments)
+        } else {
+            environment[flowTree.resultName] = flowTree.function.callBy(arguments)
+        }
+    }
+
+    private fun determineNextFlowTreeBranch(flowTree: FlowTree): FlowTree? {
+        for (flowTransition in flowTree.flowTransitions) {
+            if (isConditionTrueOrUndefined(flowTransition.condition, flowTransition.shouldNegateCondition)) {
+                return flowTransition.flowTree
+            }
+        }
+
+        throw Exception("No valid transition")
+    }
+
+    private fun isConditionTrueOrUndefined(condition: String?, shouldNegate: Boolean?): Boolean {
+        return if (condition == null) {
+            return true
+        } else {
+            isConditionTrue(condition, shouldNegate)
+        }
+    }
+
+    private fun isConditionTrue(condition: String, shouldNegate: Boolean?): Boolean {
+        val conditional = environment[condition]
+
+        return if (shouldNegate!!) {
+            conditional == false
+        } else {
+            conditional == true
+        }
+    }
+
     inline fun <reified T>getResult(): T
     {
-        val result = this.environment[this.resultKey]
+        val result = environment[resultKey]
 
         if (result == null) {
             throw Exception("No result")
