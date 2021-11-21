@@ -14,9 +14,7 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
     override val resultKey = "user"
 
     @Flow.Start
-    @Flow.TransitionTemporary([
-        "->isSpecialPerson"
-    ])
+    @Flow.Transition("", "isSpecialPerson")
     fun assertUserUnique(name: String) {
         if (name == "Not Unique") {
             throw Exception();
@@ -24,26 +22,20 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
     }
 
     @Flow.Result("isSpecialPerson")
-    @Flow.TransitionTemporary([
-        "isSpecialPerson->createTag",
-        "!isSpecialPerson->createUser"
-    ])
+    @Flow.Transition("isSpecialPerson", "createTag")
+    @Flow.Transition("!isSpecialPerson", "createUser")
     fun isSpecialPerson(name: String, age: Number): Boolean {
         return name == "Emile" && age == 23;
     }
 
     @Flow.Result("tag")
-    @Flow.TransitionTemporary([
-        "->createUser",
-    ])
+    @Flow.Transition("", "createUser")
     fun createTag(): String {
         return "special"
     }
 
     @Flow.Result("user")
-    @Flow.TransitionTemporary([
-        "->END"
-    ])
+    @Flow.Transition("", "END")
     fun createUser(name: String, age: Number, country: String, tag: String?): User {
         return User(name, age, country, tag);
     }
@@ -74,8 +66,8 @@ The main building blocks of Flow is the use of annotations.
 
 Annotation|Parameters|Explanation
 ----------|----------|-----------
-`@Start`| |The `@Start` annotation is used to signify the entry point of the flow.
-`@Result`|`resultString: String`| The `@Result` annotation is used to specify the name of the property in which the result of the function will be stored
-`@TransitionTemporary`|`transitions: Array<String>`| The `@TransitionTemporary` annotation is used to determine which function should be called next. Each possible transition should be added in the form `"condition->next"`, where condition is a boolean variable and based on it's value the respective `next` function will be called. Conditions can also be negated by adding a `!` prefix to the condition like: `"!condition->next"`. Note: `TransitionTemporary(transitions: Array<String>)` will be replaced by `@Transition(condition: String, transitionString: String)` once Kotlin releases support for repeatable runtime annotations.
+`@Flow.Start`| |The `@Flow.Start` annotation is used to signify the entry point of the flow.
+`@Flow.Result`|`resultString: String`| The `@Flow.Result` annotation is used to specify the name of the property in which the result of the function will be stored
+`@Flow.Transition`|`condition: String`, `next: String`| The `@Flow.Transition` annotation is used to determine which function should be called next. If the condition is true, then the next function will be called.
 
 Apart from annotations your Flow should just extend the `Flow` class, the generic value should be set for the return value of the flow and the parameter name should override `resultKey` that stores the result of the Flow. In the example's case I am creating a `User` so my flow will return the created `User` that is stored in the `"user"` result
