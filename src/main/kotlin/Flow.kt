@@ -4,10 +4,6 @@ import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 
 abstract class Flow {
-    companion object {
-        val flowTreeMap: MutableMap<KClass<*>, FlowTree> = mutableMapOf()
-    }
-
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
     annotation class Start
@@ -18,7 +14,12 @@ abstract class Flow {
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
-    annotation class TransitionTemporary(val transitions: Array<String>)
+    @Repeatable
+    annotation class Transition(val condition: String, val next: String)
+
+    companion object {
+        val flowTreeMap: MutableMap<KClass<*>, FlowTree> = mutableMapOf()
+    }
 
     abstract val resultKey: String
 
@@ -46,14 +47,7 @@ abstract class Flow {
     }
 
     fun determineFlowTree(): FlowTree {
-        return if (flowTreeMap.containsKey(this::class)) {
-            flowTreeMap[this::class]!!
-        } else {
-            val flowTree = FlowTreeBuilder.buildFlowTree(this)
-            flowTreeMap[this::class] = flowTree
-
-            flowTree
-        }
+        return flowTreeMap.getOrPut(this::class) { FlowTreeBuilder.buildFlowTree(this) }
     }
 
     fun executeStep(flowTree: FlowTree): FlowTree? {

@@ -7,9 +7,7 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
     override val resultKey = "user"
 
     @Flow.Start
-    @Flow.TransitionTemporary([
-        "->isSpecialPerson"
-    ])
+    @Flow.Transition("", "isSpecialPerson")
     fun assertUserUnique(name: String) {
         if (name == "Not Unique") {
             throw Exception();
@@ -17,26 +15,20 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
     }
 
     @Flow.Result("isSpecialPerson")
-    @Flow.TransitionTemporary([
-        "isSpecialPerson->createTag",
-        "!isSpecialPerson->createUser"
-    ])
+    @Flow.Transition("isSpecialPerson", "createTag")
+    @Flow.Transition("!isSpecialPerson", "createUser")
     fun isSpecialPerson(name: String, age: Number): Boolean {
         return name == "Emile" && age == 23;
     }
 
     @Flow.Result("tag")
-    @Flow.TransitionTemporary([
-        "->createUser",
-    ])
+    @Flow.Transition("", "createUser")
     fun createTag(): String {
         return "special"
     }
 
     @Flow.Result("user")
-    @Flow.TransitionTemporary([
-        "->END"
-    ])
+    @Flow.Transition("", "END")
     fun createUser(name: String, age: Number, country: String, tag: String?): User {
         return User(name, age, country, tag);
     }

@@ -39,26 +39,22 @@ class FlowTreeBuilder {
             flowFunctions: List<KFunction<*>>
         ): List<FlowTransition> {
             val flowTransitions = mutableListOf<FlowTransition>()
-            val transitionAnnotation = currentFunction.annotations.filterIsInstance<Flow.TransitionTemporary>().first()
+            val transitions = currentFunction.annotations.filterIsInstance<Flow.Transition>()
 
-            for (transition in transitionAnnotation.transitions) {
+            for (transition in transitions) {
                 flowTransitions.add(generateFlowTransition(transition, flowFunctions))
             }
 
             return flowTransitions
         }
 
-        private fun generateFlowTransition(transition: String, flowFunctions: List<KFunction<*>>): FlowTransition {
-            val transitionSplit = transition.split("->")
-            val condition = transitionSplit[0]
-            val functionName = transitionSplit[1]
-
-            val shouldNegateCondition = determineShouldNegateConditionOrNull(condition)
+        private fun generateFlowTransition(transition: Flow.Transition, flowFunctions: List<KFunction<*>>): FlowTransition {
+            val shouldNegateCondition = determineShouldNegateConditionOrNull(transition.condition)
 
             return FlowTransition(
-                determineConditionOrNull(condition, shouldNegateCondition),
+                determineConditionOrNull(transition.condition, shouldNegateCondition),
                 shouldNegateCondition,
-                determineNextFlowTreeBranchOrNull(flowFunctions, functionName)
+                determineNextFlowTreeBranchOrNull(flowFunctions, transition.next)
             )
         }
 
