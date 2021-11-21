@@ -11,7 +11,7 @@ import model.User
 import Flow
 
 @Flow.Result("user")
-class CreateUser(val name: String, val age: Number, val country: String) : Flow() {
+class CreateUser(val name: String, val age: Number, val country: String) : Flow<User>() {
     @Flow.Start
     @Flow.Transition("", "isSpecialPerson")
     fun assertUserUnique(name: String) {
@@ -44,7 +44,7 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow(
 To execute this flow you should run:
 
 ```Kotlin
-CreateUser("Emile", 23, "ZA").execute()
+CreateUser("Emile", 23, "ZA").execute<User>()
 ```
 
 This is a simple flow that is creating a `User` object. In this flow we have 4 steps:
