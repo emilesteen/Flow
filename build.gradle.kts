@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test-junit"))
-    implementation(kotlin("reflect"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0")
 }
 
 tasks.test {

@@ -4,7 +4,7 @@ import model.User
 import Flow
 
 @Flow.Result("user")
-class CreateUser(val name: String, val age: Number, val country: String) : Flow<User>() {
+internal class CreateUser(val name: String, val age: Number, val country: String) : Flow<User>() {
     @Flow.Start
     @Flow.Transition("", "isSpecialPerson")
     fun assertUserUnique(name: String) {
