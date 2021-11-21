@@ -3,9 +3,8 @@ package flow
 import model.User
 import Flow
 
-class CreateUser(val name: String, val age: Number, val country: String) : Flow() {
-    override val resultKey = "user"
-
+@Flow.Result("user")
+class CreateUser(val name: String, val age: Number, val country: String) : Flow<User>() {
     @Flow.Start
     @Flow.Transition("", "isSpecialPerson")
     fun assertUserUnique(name: String) {

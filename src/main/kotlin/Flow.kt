@@ -1,16 +1,13 @@
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KParameter
-import kotlin.reflect.KProperty
+import kotlin.reflect.*
 
-abstract class Flow {
+abstract class Flow<R> {
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
     annotation class Start
 
-    @Target(AnnotationTarget.FUNCTION)
+    @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
-    annotation class Result(val resultName: String)
+    annotation class Result(val name: String)
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
@@ -19,13 +16,12 @@ abstract class Flow {
 
     companion object {
         val flowTreeMap: MutableMap<KClass<*>, FlowTree> = mutableMapOf()
+        val resultNameMap: MutableMap<KClass<*>, String> = mutableMapOf()
     }
-
-    abstract val resultKey: String
 
     val environment = mutableMapOf<String, Any?>()
 
-    inline fun <reified T: Any>execute(): T {
+    inline fun <reified T: R>execute(): T {
         generateEnvironment()
         var flowTree: FlowTree? = determineFlowTree()
 
@@ -110,12 +106,35 @@ abstract class Flow {
 
     inline fun <reified T>getResult(): T
     {
-        val result = environment[resultKey]
+        val resultName = determineResultName()
 
-        if (result == null) {
-            throw Exception("No result")
-        } else {
-            return result as T
+        when (val result = environment[resultName]) {
+            null -> {
+                throw Exception("The workflow has no result")
+            }
+            is T -> {
+                return result
+            }
+            else -> {
+                val resultType = result::class.simpleName
+                val expectedType = T::class.simpleName
+
+                throw Exception("Result is of type $resultType, but was expecting type $expectedType")
+            }
+        }
+    }
+
+    fun determineResultName(): String {
+        return resultNameMap.getOrPut(this::class) {
+            val result = this::class.annotations.filterIsInstance<Result>().firstOrNull()
+
+            if (result == null) {
+                val workflowName = this::class.simpleName
+
+                throw Exception("The workflow $workflowName has no result annotation")
+            } else {
+                return result.name
+            }
         }
     }
 }

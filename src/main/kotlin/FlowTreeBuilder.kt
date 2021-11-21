@@ -3,7 +3,7 @@ import kotlin.reflect.KParameter
 
 class FlowTreeBuilder {
     companion object {
-        fun buildFlowTree(flow: Flow): FlowTree {
+        fun buildFlowTree(flow: Flow<*>): FlowTree {
             val flowFunctions: List<KFunction<*>> = flow::class.members.filterIsInstance<KFunction<*>>()
 
             val start = flowFunctions.find {
@@ -27,7 +27,7 @@ class FlowTreeBuilder {
         }
 
         private fun determineResultNameOrNull(currentFunction: KFunction<*>): String? {
-            return currentFunction.annotations.filterIsInstance<Flow.Result>().firstOrNull()?.resultName
+            return currentFunction.annotations.filterIsInstance<Flow.Result>().firstOrNull()?.name
         }
 
         private fun generateParameters(currentFunction: KFunction<*>): List<KParameter> {
