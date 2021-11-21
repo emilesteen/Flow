@@ -44,7 +44,7 @@ class CreateUser(val name: String, val age: Number, val country: String) : Flow<
 To execute this flow you should run:
 
 ```Kotlin
-CreateUser("Emile", 23, "ZA").execute<User>()
+val user = CreateUser("Emile", 23, "ZA").execute<User>()
 ```
 
 This is a simple flow that is creating a `User` object. In this flow we have 4 steps:
