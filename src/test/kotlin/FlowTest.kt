@@ -1,5 +1,7 @@
+package test.kotlin
+
 import org.junit.Test
-import flow.CreateUser
+import test.kotlin.flow.CreateUser
 import model.User
 import kotlin.test.assertEquals
 

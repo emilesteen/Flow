@@ -1,3 +1,3 @@
 
-rootProject.name = "Flow"
+rootProject.name = "main.kotlin.FlowTree"
 
