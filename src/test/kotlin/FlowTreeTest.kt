@@ -1,8 +1,5 @@
-package test.kotlin
-
+import model.User
 import org.junit.Test
-import test.kotlin.flow.CreateUser
-import test.kotlin.model.User
 import kotlin.test.assertEquals
 
 internal class FlowTreeTest {

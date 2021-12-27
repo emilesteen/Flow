@@ -1,8 +1,9 @@
-package main.kotlin
+package decisionTree
 
-import main.kotlin.annotations.Result
-import main.kotlin.annotations.Start
-import main.kotlin.annotations.Transition
+import annotations.Result
+import annotations.Start
+import annotations.Transition
+import FlowTree
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 

@@ -1,10 +1,7 @@
-package test.kotlin.flow
-
-import test.kotlin.model.User
-import main.kotlin.annotations.Result
-import main.kotlin.annotations.Start
-import main.kotlin.annotations.Transition
-import main.kotlin.FlowTree
+import annotations.Result
+import annotations.Start
+import annotations.Transition
+import model.User
 
 @Result("user")
 internal class CreateUser(val name: String, val age: Number, val country: String) : FlowTree<User>() {

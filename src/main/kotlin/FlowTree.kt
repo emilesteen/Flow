@@ -1,6 +1,6 @@
-package main.kotlin
-
-import main.kotlin.annotations.Result
+import annotations.Result
+import decisionTree.DecisionTree
+import decisionTree.DecisionTreeBuilder
 import kotlin.reflect.*
 
 abstract class FlowTree<R> {

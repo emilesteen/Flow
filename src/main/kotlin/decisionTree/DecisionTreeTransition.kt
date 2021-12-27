@@ -1,4 +1,4 @@
-package main.kotlin
+package decisionTree
 
 class DecisionTreeTransition(
     val condition: String?,

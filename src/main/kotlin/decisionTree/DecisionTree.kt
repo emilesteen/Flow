@@ -1,4 +1,4 @@
-package main.kotlin
+package decisionTree
 
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter

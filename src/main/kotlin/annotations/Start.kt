@@ -1,4 +1,4 @@
-package main.kotlin.annotations
+package annotations
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
