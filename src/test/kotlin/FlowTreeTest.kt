@@ -2,10 +2,10 @@ package test.kotlin
 
 import org.junit.Test
 import test.kotlin.flow.CreateUser
-import model.User
+import test.kotlin.model.User
 import kotlin.test.assertEquals
 
-internal class FlowTest {
+internal class FlowTreeTest {
     @Test
     fun testFlow() {
         val notSpecialUser = CreateUser("Emile", 22, "ZA").execute<User>()

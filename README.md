@@ -1,40 +1,43 @@
-# main.kotlin.FlowTree
+# FlowTree
 
-## What is main.kotlin.FlowTree
+## What is FlowTree
 
-main.kotlin.FlowTree is framework to abstract programs into a decision tree flow chart. To illustrate some core concepts of main.kotlin.FlowTree I will use a simple example:
+FlowTree is framework to abstract programs into a decision tree flow chart. To illustrate some core concepts of FlowTree I will use a simple example:
 
 ```Kotlin
-package flow
+package test.kotlin.flow
 
-import model.User
-import Flow
+import test.kotlin.model.User
+import main.kotlin.annotations.Result
+import main.kotlin.annotations.Start
+import main.kotlin.annotations.Transition
+import main.kotlin.FlowTree
 
-@Flow.Result("user")
-class CreateUser(val name: String, val age: Number, val country: String) : Flow<User>() {
-    @Flow.Start
-    @Flow.Transition("", "isSpecialPerson")
+@Result("user")
+internal class CreateUser(val name: String, val age: Number, val country: String) : FlowTree<User>() {
+    @Start
+    @Transition("", "isSpecialPerson")
     fun assertUserUnique(name: String) {
         if (name == "Not Unique") {
             throw Exception();
         }
     }
 
-    @Flow.Result("isSpecialPerson")
-    @Flow.Transition("isSpecialPerson", "createTag")
-    @Flow.Transition("!isSpecialPerson", "createUser")
+    @Result("isSpecialPerson")
+    @Transition("isSpecialPerson", "createTag")
+    @Transition("!isSpecialPerson", "createUser")
     fun isSpecialPerson(name: String, age: Number): Boolean {
         return name == "Emile" && age == 23;
     }
 
-    @Flow.Result("tag")
-    @Flow.Transition("", "createUser")
+    @Result("tag")
+    @Transition("", "createUser")
     fun createTag(): String {
         return "special"
     }
 
-    @Flow.Result("user")
-    @Flow.Transition("", "END")
+    @Result("user")
+    @Transition("", "END")
     fun createUser(name: String, age: Number, country: String, tag: String?): User {
         return User(name, age, country, tag);
     }
@@ -63,10 +66,10 @@ Now some things to notice:
 
 The main building blocks of Flow is the use of annotations.
 
-| Annotation             | Parameters                          | Explanation                                                                                                                                                       |
-|------------------------|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `@main.kotlin.FlowTree.Start`      |                                     | The `@main.kotlin.FlowTree.Start` annotation is used to signify the entry point of the flow.                                                                                  |
-| `@main.kotlin.FlowTree.Result`     | `resultString: String`              | The `@main.kotlin.FlowTree.Result` annotation is used to specify the name of the property in which the result of the function will be stored                                  |
-| `@main.kotlin.FlowTree.Transition` | `condition: String`, `next: String` | The `@main.kotlin.FlowTree.Transition` annotation is used to determine which function should be called next. If the condition is true, then the next function will be called. |
+| Annotation    | Parameters                          | Explanation                                                                                                                                              |
+|---------------|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `@Start`      |                                     | The `@Start` annotation is used to signify the entry point of the flow.                                                                                  |
+| `@Result`     | `resultString: String`              | The `@Result` annotation is used to specify the name of the property in which the result of the function will be stored                                  |
+| `@Transition` | `condition: String`, `next: String` | The `@Transition` annotation is used to determine which function should be called next. If the condition is true, then the next function will be called. |
 
-Apart from annotations your main.kotlin.FlowTree should just extend the `main.kotlin.FlowTree` class, the generic value should be set for the return value of the flow and the parameter name should override `resultKey` that stores the result of the Flow. In the example's case I am creating a `User` so my flow will return the created `User` that is stored in the `"user"` result
+Apart from annotations your FlowTree should just extend the `FlowTree` class, the generic value should be set for the return value of the flow and the parameter name should override `resultKey` that stores the result of the Flow. In the example's case I am creating a `User` so my flow will return the created `User` that is stored in the `"user"` result

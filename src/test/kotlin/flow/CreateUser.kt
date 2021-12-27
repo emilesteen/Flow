@@ -1,6 +1,6 @@
 package test.kotlin.flow
 
-import model.User
+import test.kotlin.model.User
 import main.kotlin.annotations.Result
 import main.kotlin.annotations.Start
 import main.kotlin.annotations.Transition
