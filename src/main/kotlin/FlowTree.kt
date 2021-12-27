@@ -1,7 +1,10 @@
 import annotations.Result
 import decisionTree.DecisionTree
 import decisionTree.DecisionTreeBuilder
-import kotlin.reflect.*
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
 
 abstract class FlowTree<R> {
     companion object {
@@ -11,7 +14,7 @@ abstract class FlowTree<R> {
 
     val environment = mutableMapOf<String, Any?>()
 
-    inline fun <reified T: R>execute(): T {
+    inline fun <reified T : R> execute(): T {
         generateEnvironment()
 
         var decisionTree: DecisionTree? = determineDecisionTree()
@@ -46,7 +49,7 @@ abstract class FlowTree<R> {
 
     private fun generateArguments(
         function: KFunction<*>,
-        parameters: List<KParameter>
+        parameters: List<KParameter>,
     ): MutableMap<KParameter, Any?> {
         val arguments = mutableMapOf<KParameter, Any?>()
 
@@ -100,8 +103,7 @@ abstract class FlowTree<R> {
         }
     }
 
-    inline fun <reified T>getResult(): T
-    {
+    inline fun <reified T> getResult(): T {
         val resultName = determineResultName()
 
         when (val result = environment[resultName]) {

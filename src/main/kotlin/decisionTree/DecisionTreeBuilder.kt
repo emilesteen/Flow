@@ -1,9 +1,9 @@
 package decisionTree
 
+import FlowTree
 import annotations.Result
 import annotations.Start
 import annotations.Transition
-import FlowTree
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 
@@ -21,14 +21,14 @@ class DecisionTreeBuilder {
         }
 
         private fun findStart(flowTreeFunctions: List<KFunction<*>>): KFunction<*>? {
-            return flowTreeFunctions.find {
-                function -> function.annotations.filterIsInstance<Start>().isNotEmpty()
+            return flowTreeFunctions.find { function ->
+                function.annotations.filterIsInstance<Start>().isNotEmpty()
             }
         }
 
         private fun buildDecisionTreeBranch(
             currentFunction: KFunction<*>,
-            flowFunctions: List<KFunction<*>>
+            flowFunctions: List<KFunction<*>>,
         ): DecisionTree {
             return DecisionTree(
                 currentFunction,
@@ -48,7 +48,7 @@ class DecisionTreeBuilder {
 
         private fun generateDecisionTreeTransitions(
             currentFunction: KFunction<*>,
-            flowTreeFunctions: List<KFunction<*>>
+            flowTreeFunctions: List<KFunction<*>>,
         ): List<DecisionTreeTransition> {
             val decisionTreeTransitions = mutableListOf<DecisionTreeTransition>()
             val transitions = currentFunction.annotations.filterIsInstance<Transition>()
@@ -62,7 +62,7 @@ class DecisionTreeBuilder {
 
         private fun generateDecisionTreeTransition(
             transition: Transition,
-            flowTreeFunctions: List<KFunction<*>>
+            flowTreeFunctions: List<KFunction<*>>,
         ): DecisionTreeTransition {
             val shouldNegateCondition = determineShouldNegateConditionOrNull(transition.condition)
 
@@ -97,7 +97,7 @@ class DecisionTreeBuilder {
 
         private fun determineNextDecisionTreeBranchOrNull(
             flowFunctions: List<KFunction<*>>,
-            functionName: String
+            functionName: String,
         ): DecisionTree? {
             return if (functionName == "END") {
                 null
@@ -108,7 +108,7 @@ class DecisionTreeBuilder {
 
         private fun determineNextDecisionTreeBranch(
             flowFunctions: List<KFunction<*>>,
-            functionName: String
+            functionName: String,
         ): DecisionTree {
             val transitionFunction = flowFunctions.find { flowFunction -> flowFunction.name == functionName }
 
