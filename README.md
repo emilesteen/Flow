@@ -6,18 +6,15 @@ FlowTree is framework to abstract programs into a decision tree flow chart. To i
 I will use a simple example:
 
 ```Kotlin
-package test.kotlin.flow
-
-import test.kotlin.model.User
-import main.kotlin.annotations.Result
-import main.kotlin.annotations.Start
-import main.kotlin.annotations.Transition
-import main.kotlin.FlowTree
+import annotations.Result
+import annotations.Start
+import annotations.Transition
+import model.User
 
 @Result("user")
 internal class CreateUser(val name: String, val age: Number, val country: String) : FlowTree<User>() {
     @Start
-    @Transition("", "isSpecialPerson")
+    @Transition("isSpecialPerson")
     fun assertUserUnique(name: String) {
         if (name == "Not Unique") {
             throw Exception();
@@ -25,20 +22,20 @@ internal class CreateUser(val name: String, val age: Number, val country: String
     }
 
     @Result("isSpecialPerson")
-    @Transition("isSpecialPerson", "createTag")
-    @Transition("!isSpecialPerson", "createUser")
+    @Transition("createTag", "isSpecialPerson")
+    @Transition("createUser", "!isSpecialPerson")
     fun isSpecialPerson(name: String, age: Number): Boolean {
         return name == "Emile" && age == 23;
     }
 
     @Result("tag")
-    @Transition("", "createUser")
+    @Transition("createUser")
     fun createTag(): String {
         return "special"
     }
 
     @Result("user")
-    @Transition("", "END")
+    @Transition("END")
     fun createUser(name: String, age: Number, country: String, tag: String?): User {
         return User(name, age, country, tag);
     }
@@ -71,7 +68,7 @@ The main building blocks of Flow is the use of annotations.
 |---------------|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `@Start`      |                                     | The `@Start` annotation is used to signify the entry point of the flow.                                                                                  |
 | `@Result`     | `resultString: String`              | The `@Result` annotation is used to specify the name of the property in which the result of the function will be stored                                  |
-| `@Transition` | `condition: String`, `next: String` | The `@Transition` annotation is used to determine which function should be called next. If the condition is true, then the next function will be called. |
+| `@Transition` | `next: String`, `condition: String` | The `@Transition` annotation is used to determine which function should be called next. If the condition is true, then the next function will be called. |
 
 Apart from annotations your FlowTree should just extend the `FlowTree` class, the generic value should be set for the
 return value of the flow and the parameter name should override `resultKey` that stores the result of the Flow. In the

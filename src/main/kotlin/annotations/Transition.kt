@@ -3,4 +3,4 @@ package annotations
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @Repeatable
-annotation class Transition(val condition: String, val next: String)
+annotation class Transition(val next: String, val condition: String = "")
