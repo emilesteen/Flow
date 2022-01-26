@@ -6,17 +6,24 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
 
-abstract class FlowTree<R> {
+abstract class FlowTree<R>(vararg arguments: Any?) {
     companion object {
         val decisionTreeMap: MutableMap<KClass<*>, DecisionTree> = mutableMapOf()
         val resultNameMap: MutableMap<KClass<*>, String> = mutableMapOf()
     }
 
-    val environment = mutableMapOf<String, Any?>()
+    val state = mutableMapOf<String, Any?>()
+
+    init {
+        val parameters = this.javaClass.kotlin.constructors.first().parameters
+
+        parameters.forEachIndexed { index, parameter ->
+            this.state[parameter.name!!] =
+                arguments[index] // TODO: Check that argument matches parameter type
+        }
+    }
 
     inline fun <reified T : R> execute(): T {
-        generateEnvironment()
-
         var decisionTree: DecisionTree? = determineDecisionTree()
 
         do {
@@ -24,14 +31,6 @@ abstract class FlowTree<R> {
         } while (decisionTree != null)
 
         return getResult()
-    }
-
-    fun generateEnvironment() {
-        val properties = this.javaClass.kotlin.members.filterIsInstance<KProperty<*>>()
-
-        for (property in properties) {
-            environment[property.name] = property.getter.call(this)
-        }
     }
 
     fun determineDecisionTree(): DecisionTree {
@@ -56,7 +55,7 @@ abstract class FlowTree<R> {
         arguments[function.parameters.first()] = this
 
         for (parameter in parameters) {
-            arguments[parameter] = environment[parameter.name.toString()]
+            arguments[parameter] = state[parameter.name.toString()]
         }
 
         return arguments
@@ -66,7 +65,7 @@ abstract class FlowTree<R> {
         if (decisionTree.resultName == null) {
             decisionTree.function.callBy(arguments)
         } else {
-            environment[decisionTree.resultName] = decisionTree.function.callBy(arguments)
+            state[decisionTree.resultName] = decisionTree.function.callBy(arguments)
         }
     }
 
@@ -94,7 +93,7 @@ abstract class FlowTree<R> {
     }
 
     private fun isConditionTrue(condition: String, shouldNegate: Boolean?): Boolean {
-        val conditional = environment[condition]
+        val conditional = state[condition]
 
         return if (shouldNegate!!) {
             conditional == false
@@ -106,7 +105,7 @@ abstract class FlowTree<R> {
     inline fun <reified T> getResult(): T {
         val resultName = determineResultName()
 
-        when (val result = environment[resultName]) {
+        when (val result = state[resultName]) {
             null -> {
                 throw Exception("The workflow has no result")
             }

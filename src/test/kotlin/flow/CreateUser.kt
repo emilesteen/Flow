@@ -4,7 +4,11 @@ import annotations.Transition
 import model.User
 
 @Result("user")
-internal class CreateUser(val name: String, val age: Number, val country: String) : FlowTree<User>() {
+internal class CreateUser(
+    name: String,
+    age: Number,
+    country: String
+) : FlowTree<User>(name, age, country) {
     @Start
     @Transition("isSpecialPerson")
     fun assertUserUnique(name: String) {
